@@ -25,7 +25,7 @@ namespace PRHawkRestService.Services
         private string Authentication;
         private string userBaseUrl;
         private string repoBaseUrl;
-        private string userName;
+        private string userId;
         private string password;
 
         private static HttpClient client = new HttpClient();
@@ -39,7 +39,7 @@ namespace PRHawkRestService.Services
             Authentication = webSettings.GetAuthentication();
             userBaseUrl = webSettings.GetUserBaseUrl();
             repoBaseUrl = webSettings.GetRepoBaseUrl();
-            userName = webSettings.GetUserName();
+            userId = webSettings.GetUserName();
             password = webSettings.GetPassword();
             SetHeaders();
         }
@@ -49,38 +49,42 @@ namespace PRHawkRestService.Services
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
             
-            List<Repository> result;
+            List<Repository> result = new List<Repository>();
 
-            var uri = userBaseUrl + userName + "/repos?per_page=100";
-
-            var response = client.GetAsync(uri).Result;
-            if (response.IsSuccessStatusCode)
+            try
             {
-                //Parse JSON to object
-                var jsonResponse = response.Content.ReadAsStringAsync().Result;
-                result = JsonConvert.DeserializeObject<List<Repository>>(jsonResponse,settings);
+                var uri = BuildRepoListUrl(userName);
 
-                // Check for pages
-                var nextUri = GetNextUri(response);
-                while (!String.IsNullOrEmpty(nextUri))
+                var response = client.GetAsync(uri).Result;
+                if (response.IsSuccessStatusCode)
                 {
-                    var pagedResponse = client.GetAsync(nextUri).Result;
-                    if (pagedResponse.IsSuccessStatusCode)
-                    {
-                        //Parse JSON to object
-                        var pagedJsonResponse = pagedResponse.Content.ReadAsStringAsync().Result;
-                        result.AddRange(JsonConvert.DeserializeObject<List<Repository>>(pagedJsonResponse, settings));
+                    //Parse JSON to object
+                    var jsonResponse = response.Content.ReadAsStringAsync().Result;
+                    result = JsonConvert.DeserializeObject<List<Repository>>(jsonResponse, settings);
 
-                        // Check for pages
-                        nextUri = GetNextUri(pagedResponse);
+                    // Check for pages
+                    var nextUri = GetNextUri(response);
+                    while (!String.IsNullOrEmpty(nextUri))
+                    {
+                        var pagedResponse = client.GetAsync(nextUri).Result;
+                        if (pagedResponse.IsSuccessStatusCode)
+                        {
+                            //Parse JSON to object
+                            var pagedJsonResponse = pagedResponse.Content.ReadAsStringAsync().Result;
+                            result.AddRange(JsonConvert.DeserializeObject<List<Repository>>(pagedJsonResponse, settings));
+
+                            // Check for pages
+                            nextUri = GetNextUri(pagedResponse);
+                        }
+                        else
+                            break;
                     }
-                    else
-                        break;
                 }
             }
-            else
+            catch (Exception ex)
             {
-                result = new List<Repository>();
+                // Handle exception
+                // Can also throw error  if response status code i snot success and handle here
             }
 
             return result;
@@ -91,29 +95,37 @@ namespace PRHawkRestService.Services
         {
             foreach(var repo in repositories)
             {
-                // Requests for 1 pull request detail at a time and uses the last page url to get the total count
-                // Default return is only "Open" pull requests
-                var uri = repoBaseUrl + userName + '/' + repo.Name + "/pulls?per_page=1";
-                var response = client.GetAsync(uri).Result;
-
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    IEnumerable<String> linkHeader;
-                    response.Headers.TryGetValues("Link", out linkHeader);
+                    // Requests for 1 pull request detail at a time and uses the last page url to get the total count
+                    // Default return is only "Open" pull requests
+                    var uri = BuildPullReqUrl(userName, repo.Name);
 
-                    if (linkHeader != null && linkHeader.Count() > 0)
+                    var response = client.GetAsync(uri).Result;
+
+                    if (response.IsSuccessStatusCode)
                     {
-                        var links = linkHeader.First().ToString();
-                        var splitLinks = links.Split(',');
-                        var last = splitLinks[1].Split(';'); // Second link is the last page link
-                        var indexOfCount = last[0].IndexOf("&page="); // Get the index of the last page number
-                        var lastPage = last[0][indexOfCount + 6];
-                        repo.OpenPullRequests = (int)Char.GetNumericValue(lastPage); // Last page number is the total open pull requests
+                        repo.OpenPullRequests = GetCountOfOpenPullRequests(response);
                     }
+                }
+                catch (Exception ex)
+                {
+                    // Handle exception here
+                    // Handle if success code is error as well
                 }
             }
 
             repositories.Sort(); // Sort descending
+        }
+
+        private string BuildRepoListUrl(string userName)
+        {
+            return userBaseUrl + userName + "/repos?per_page=100";
+        }
+
+        private string BuildPullReqUrl(string userName, string repoName)
+        {
+            return repoBaseUrl + userName + '/' + repoName + "/pulls?per_page=1";
         }
 
         // Set sthe outgoing headers required by the git api
@@ -128,7 +140,7 @@ namespace PRHawkRestService.Services
         // Encodes username and password
         private string GetToken()
         {
-            var combToken = userName + ":" + password;
+            var combToken = userId + ":" + password;
             var bytes = System.Text.Encoding.UTF8.GetBytes(combToken);
             return System.Convert.ToBase64String(bytes);
         }
@@ -155,6 +167,26 @@ namespace PRHawkRestService.Services
                 }
             }
             return uri;
+        }
+
+        // Returns count of total open pull requests by looking at last page url
+        private int GetCountOfOpenPullRequests(HttpResponseMessage response)
+        {
+            int count = 0;
+            IEnumerable<String> linkHeader;
+            response.Headers.TryGetValues("Link", out linkHeader);
+
+            if (linkHeader != null && linkHeader.Count() > 0)
+            {
+                var links = linkHeader.First().ToString();
+                var splitLinks = links.Split(',');
+                var last = splitLinks[1].Split(';'); // Second link is the last page link
+                var indexOfCount = last[0].IndexOf("&page="); // Get the index of the last page number
+                var lastPage = last[0][indexOfCount + 6];
+                count = (int)Char.GetNumericValue(lastPage); // Last page number is the total open pull requests
+            }
+
+            return count;
         }
     }
 }
