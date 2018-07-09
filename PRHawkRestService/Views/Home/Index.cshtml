@@ -1,0 +1,43 @@
+﻿<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.min.js"></script>  
+<script> 
+    $(document).ready(function () {
+
+        $("#GetRepositories").click(function ()  {
+
+            // Send an AJAX request  
+            $.ajax({
+                url: 'http://localhost:44683/api/username/' + $('#userid').val() + '?type=json',
+                type: "GET",
+                data: {},
+                dataType: "json",
+                success: function (result) {
+                    // On success, 'data' contains a list of products.  
+                    var htmlContent = "";
+
+                    $.each(result, function (key, item) {
+                        htmlContent = htmlContent + "<tr><td>" + item.Name + "</td><td>" + item.OpenPullRequests + "</td><td><a href ='" + item.Url + "'>" + item.Url + "</a></td></tr>";
+                    });
+
+                    // Appending HTML content  
+                    $('#repos').append(htmlContent);
+                },
+                error: function (err) {
+                    alert(err.statusText);
+                }
+            });
+        });
+    });
+    </script>
+
+<div id="body">
+  <h2>Enter user id</h2>    
+    <input name="userid" id="userid" size="5" />    
+    <input name="GetRepositories" type="button" id="GetRepositories" value="GetRepositories"/>   
+        <table border="1" cellpadding="1" cellspacing="1" id="repos">    
+        <tr>    
+            <th>Name</th>    
+            <th>OpenPullRequests</th>    
+            <th>Url</th>    
+        </tr>    
+    </table> 
+</div>
