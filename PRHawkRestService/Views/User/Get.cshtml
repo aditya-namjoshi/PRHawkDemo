@@ -1,0 +1,35 @@
+﻿@model IEnumerable<PRHawkRestService.Models.Repository>
+
+@{
+    ViewBag.Title = "Get";
+}
+
+<h1>Repositories</h1>
+<table border="1">
+    <tr>
+        <th text-align: center>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th text-align: center>
+            Open Pull Requests
+        </th>
+        <th text-align: center>
+            @Html.DisplayNameFor(model => model.Url)
+        </th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td align="center">
+            @Html.DisplayFor(modelItem => item.OpenPullRequests)
+        </td>
+        <td>
+            <a href ="@Html.DisplayFor(modelItem => item.Url)">@Html.DisplayFor(modelItem => item.Url)</a>
+        </td>
+    </tr>
+}
+
+</table>
