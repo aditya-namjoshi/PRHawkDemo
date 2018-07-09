@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using PRHawkRestService.WebSettings;
+using System.Configuration;
 
 namespace PRHawkTests
 {
@@ -20,13 +21,13 @@ namespace PRHawkTests
 
         public RepositoryServiceTests()
         {
-            webSettings = new Mock<WebConfigSettings>(); 
-            webSettings.Setup(o => o.GetUserAgent()).Returns("PRHawkDemo");
-            webSettings.Setup(o => o.GetAuthentication()).Returns("Basic");
-            webSettings.Setup(o => o.GetUserBaseUrl()).Returns("https://api.github.com/users/");
-            webSettings.Setup(o => o.GetRepoBaseUrl()).Returns("https://api.github.com/repos/");
-            webSettings.Setup(o => o.GetUserName()).Returns("snkirklandinterview");
-            webSettings.Setup(o => o.GetPassword()).Returns("07c76ed5f66329252f38f43a8472a8f741047271");
+            webSettings = new Mock<WebConfigSettings>();
+            webSettings.Setup(o => o.GetUserAgent()).Returns(ConfigurationManager.AppSettings["UserAgent"]);
+            webSettings.Setup(o => o.GetAuthentication()).Returns(ConfigurationManager.AppSettings["Authentication"]);
+            webSettings.Setup(o => o.GetUserBaseUrl()).Returns(ConfigurationManager.AppSettings["UserBaseUrl"]);
+            webSettings.Setup(o => o.GetRepoBaseUrl()).Returns(ConfigurationManager.AppSettings["RepoBaseUrl"]);
+            webSettings.Setup(o => o.GetUserName()).Returns(ConfigurationManager.AppSettings["UserName"]);
+            webSettings.Setup(o => o.GetPassword()).Returns(ConfigurationManager.AppSettings["Password"]);
         }
 
         [TestMethod]
