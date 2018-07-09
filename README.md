@@ -18,15 +18,15 @@ PN: For the third part to work, need to update port number in the following file
 PRHawkRestService\Views\Home\Index.cshtml 
 url: 'http://localhost:44683/api/username/' + $('#userid').val() + '?type=json', => Update the portno 44683 to the appropriate localhost port no.
                 
-Alternate method
-2) There is a rar file that has the entire published website. /PRHawk.rar
-  a) Unzip and copy to a path
-  b) Update the web.config with credentials for github api
-  c) Deploy this to IIS or other server by creating a website pointing to this path. Name the website PRHawk
-  d) Navigate to the same urls as above without the port number.
-    Forex: for the first part from above, the link will be : http://localhost/PRHawk/user/{username} [Stand alone MVC]
-            for the second part from above, the link will be http://localhost/PRHawk/api/username/{username} [Web API Rest APIT]
-            for the third part from above, the link will be http://localhost/PRHawk/Home [MVC consuming the API created in part 2]
+Alternate method  
+2) There is a rar file that has the entire published website. /PRHawk.rar  
+  a) Unzip and copy to a path  
+  b) Update the web.config with credentials for github api  
+  c) Deploy this to IIS or other server by creating a website pointing to this path. Name the website PRHawk  
+  d) Navigate to the same urls as above without the port number.  
+    Forex: for the first part from above, the link will be : http://localhost/PRHawk/user/{username} [Stand alone MVC]  
+            for the second part from above, the link will be http://localhost/PRHawk/api/username/{username} [Web API Rest APIT]  
+            for the third part from above, the link will be http://localhost/PRHawk/Home [MVC consuming the API created in part 2]  
             
   PN: Web.config file should have permissions for IIS_IUSRS to be able to run on IIS.
   
