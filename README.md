@@ -2,7 +2,9 @@
 PRHawk -- This is a C# .Net based MVC App and RESTful API using Web API.
 
 To execute:
-1) Run the application from Visual Studio IDE (.Net 4/ .Net 4.5)
+Method 1) 
+Run the application from Visual Studio IDE (.Net 4/ .Net 4.5)
+
   a) Replace the GitHub API credentials in the web.config file for the following key value pair:
   <add key="Password" value = ""> Update the value with the password. This file is available in the \PRHawkRestService folder
   b) For the test cases to run, need to update the same in the app.config
@@ -19,7 +21,8 @@ PRHawkRestService\Views\Home\Index.cshtml
 url: 'http://localhost:44683/api/username/' + $('#userid').val() + '?type=json', => Update the portno 44683 to the appropriate localhost port no.
                 
 Alternate method  
-2) There is a rar file that has the entire published website. /PRHawk.rar  
+Method 2)  
+There is a rar file that has the entire published website. /PRHawk.rar  
   a) Unzip and copy to a path  
   b) Update the web.config with credentials for github api  
   c) Deploy this to IIS or other server by creating a website pointing to this path. Name the website PRHawk  
